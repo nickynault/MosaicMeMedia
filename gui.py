@@ -49,6 +49,11 @@ def is_valid_image(file_path):
 # Uploading the images
 def upload_images():
     global mosaic_display, download_button
+
+    # Check if extracted_images folder exists and delete its contents
+    extracted_folder_path = "extracted_images"
+    if os.path.exists(extracted_folder_path):
+        shutil.rmtree(extracted_folder_path)
     
     file_path = filedialog.askopenfilename(initialdir="/", title="Select Your Zip File!",
                                            filetypes=[("Zip Files", "*.zip"),
