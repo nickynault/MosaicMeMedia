@@ -4,6 +4,8 @@ from PIL import Image, ImageTk, ImageGrab
 import os
 import random
 
+selected_shape = "square"
+
 mosaic_feedback_phrases = [
     "You just crafted a masterpiece! Ready for more?",
     "Your mosaic game is strong! Want another round?",
@@ -18,7 +20,7 @@ mosaic_feedback_phrases = [
 ]
 
 
-def generate_mosaic(extracted_folder, progress_callback=None):
+def generate_mosaic(extract_folder, progress_callback=None):
     # Get a list of subfolders within the extracted folder
     valid_images = [file for file in os.listdir(extract_folder) if
                     file.lower().endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp"))]
@@ -50,6 +52,12 @@ def generate_mosaic(extracted_folder, progress_callback=None):
 
     return mosaic_photo
 
+
 def random_phrase(phrases):
     chosen_phrase = random.choice(phrases)
     return chosen_phrase
+
+
+def set_shape(shape):
+    global selected_shape
+    selected_shape = shape
