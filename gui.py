@@ -4,8 +4,11 @@ import tkinter as tk
 from tkinter import filedialog
 from mosaic import *
 import patoolib
+import shutil
 
 mosaic_description: tk.StringVar
+
+VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".PNG", ".bmp", ".gif", ".tiff", ".webp"}
 
 # Check if the images inside the zipped folder are actual valid images
 def is_valid_image(file_path):
@@ -41,15 +44,28 @@ def extract_images(file_path):
         # Extract images from the archive file
         patoolib.extract_archive(file_path, outdir=extract_folder)
 
+        # Move images directly to 'extracted_images' folder
+        subfolders = [subfolder for subfolder in os.listdir(extract_folder) if
+                      os.path.isdir(os.path.join(extract_folder, subfolder))]
+
+        if subfolders:
+            subfolder_path = os.path.join(extract_folder, subfolders[0])
+            for file in os.listdir(subfolder_path):
+                source_path = os.path.join(subfolder_path, file)
+                destination_path = os.path.join(extract_folder, file)
+                shutil.move(source_path, destination_path)
+
+            # Remove the now empty subfolder
+            os.rmdir(subfolder_path)
+
         # Check if the extracted folder is NOT empty
         files_in_folder = os.listdir(extract_folder)
+        
         if not files_in_folder:
             raise FileNotFoundError("The extracted folder is empty.")
 
-        # Check if the extracted folder contains valid image files
-        valid_images = [file for file in files_in_folder if file.lower().endswith(tuple(VALID_IMAGE_EXTENSIONS))]
-        if not valid_images:
-            raise ValueError("The extracted folder does not contain valid image files.")
+        # Generate the mosaic
+        mosaic_photo = generate_mosaic(extract_folder)
 
         # Update the mosaic description
         mosaic_description.set(random_phrase(mosaic_feedback_phrases))
