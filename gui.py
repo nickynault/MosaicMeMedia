@@ -1,15 +1,18 @@
 # This is the GUI
 
-import tkinter as tk
-from tkinter import filedialog
-from mosaic import *
-import patoolib
 import shutil
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
+
+import patoolib
+
+from mosaic import *
 
 mosaic_description: tk.StringVar
 mosaic_display: tk.Label
 download_button: tk.Button
 app: tk.Tk
+loading_bar: tk.ttk.Progressbar
 
 VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".PNG", ".bmp", ".gif", ".tiff", ".webp"}
 
@@ -42,9 +45,9 @@ def is_valid_image(file_path):
     try:
         Image.open(file_path)
         return True
-    except Exception as e:
+    except Exception:
         return False
-        
+
 
 # Uploading the images
 def upload_images():
@@ -54,7 +57,7 @@ def upload_images():
     extracted_folder_path = "extracted_images"
     if os.path.exists(extracted_folder_path):
         shutil.rmtree(extracted_folder_path)
-    
+
     file_path = filedialog.askopenfilename(initialdir="/", title="Select Your Zip File!",
                                            filetypes=[("Zip Files", "*.zip"),
                                                       ("RAR Files", "*.rar"),
@@ -62,7 +65,8 @@ def upload_images():
 
     if file_path:
         if not file_path.lower().endswith((".zip", ".rar", ".7z")):
-            messagebox.showerror("Error", "Please select a valid archive file (zip, rar, 7z).")  # shouldn't need this. but just in case
+            messagebox.showerror("Error",
+                                 "Please select a valid archive file (zip, rar, 7z).")  # shouldn't need this. but just in case
         else:
             extract_images(file_path)
             create_download_button()
@@ -76,9 +80,25 @@ def create_download_button():
     download_button.pack(side="top", pady=20)
 
 
+def update_loading_bar():
+    global loading_bar
+
+    loading_bar.pack(side="top")  # Pack the loading bar before starting it
+    loading_bar['mode'] = 'determinate'  # Change mode to 'determinate'
+
+    def progress_callback(progress):
+        loading_bar['value'] = progress
+        loading_bar.update()
+
+    # Generate the mosaic with a loading bar
+    generate_mosaic("extracted_images", progress_callback)
+
+    loading_bar['mode'] = 'indeterminate'  # Change mode back to 'indeterminate'
+
+
 def extract_images(file_path):
-    global mosaic_description, mosaic_display
-    
+    global mosaic_description, mosaic_display, loading_bar
+
     try:
         # Create a folder to extract images
         extract_folder = "extracted_images"
@@ -101,11 +121,14 @@ def extract_images(file_path):
             # Remove the now empty subfolder
             os.rmdir(subfolder_path)
 
-        # Check if the extracted folder is NOT empty
+        # Check if the extracted folder is not empty
         files_in_folder = os.listdir(extract_folder)
-        
+
         if not files_in_folder:
-            raise FileNotFoundError("The extracted folder is empty.")
+            raise FileNotFoundError("No files found in the extracted folder.")
+
+        # Generate a loading bar
+        update_loading_bar()
 
         # Generate the mosaic
         mosaic_photo = generate_mosaic(extract_folder)
@@ -116,6 +139,9 @@ def extract_images(file_path):
         # Update the mosaic_display label to show the generated mosaic
         mosaic_display.config(image=mosaic_photo)
         mosaic_display.image = mosaic_photo  # Keep a reference to avoid garbage collection
+
+        # Hide loading bar after completion
+        loading_bar.pack_forget()
 
     except FileNotFoundError:
         messagebox.showerror("Extraction Error", "The extracted folder is empty.")
@@ -128,8 +154,8 @@ def extract_images(file_path):
 
 
 def create_gui():
-    global mosaic_description, mosaic_display, app
-    
+    global mosaic_description, mosaic_display, app, loading_bar
+
     app = tk.Tk()
     app.title("MosaicMeMagic")
     app.geometry("800x800")
@@ -140,15 +166,19 @@ def create_gui():
     label.pack(side="top")
 
     mosaic_description = tk.StringVar()
-    mosaic_description.set("Upload a zipped '.zip', '.7z', or '.rar' folder with some images inside. \nYour mosaic will appear here.")
+    mosaic_description.set(
+        "Upload a zipped '.zip', '.7z', or '.rar' folder with some images inside. \nYour mosaic will appear here.")
 
     mosaic_label = tk.Label(app, textvariable=mosaic_description, bg="#f0f0f0", pady=10, font=("Arial", 15))
     mosaic_label.pack(side="top")
-    
-    upload_button = tk.Button(app, text="Upload Images", command=upload_images)
-    upload_button.pack()
 
-    mosaic_display = tk.Label(app, text="Mosaic appears here!", font=("Arial", 15), bg="#f0f0f0")
+    upload_button = tk.Button(app, text="Upload Images", command=upload_images)
+    upload_button.pack(pady=20)
+
+    mosaic_display = tk.Label(app, text="", font=("Arial", 15), bg="#f0f0f0")
     mosaic_display.pack(side="top")
+
+    loading_bar = tk.ttk.Progressbar(app, length=200, mode="indeterminate")
+    loading_bar.pack_forget()
 
     return app
