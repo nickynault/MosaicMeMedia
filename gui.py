@@ -7,6 +7,7 @@ import patoolib
 import shutil
 
 mosaic_description: tk.StringVar
+mosaic_display: tk.Label
 
 VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".PNG", ".bmp", ".gif", ".tiff", ".webp"}
 
@@ -34,7 +35,7 @@ def upload_images():
 
 
 def extract_images(file_path):
-    global mosaic_description
+    global mosaic_description, mosaic_display
     
     try:
         # Create a folder to extract images
@@ -70,6 +71,10 @@ def extract_images(file_path):
         # Update the mosaic description
         mosaic_description.set(random_phrase(mosaic_feedback_phrases))
 
+        # Update the mosaic_display label to show the generated mosaic
+        mosaic_display.config(image=mosaic_photo)
+        mosaic_display.image = mosaic_photo  # Keep a reference to avoid garbage collection
+
     except FileNotFoundError:
         messagebox.showerror("Extraction Error", "The extracted folder is empty.")
     except patoolib.util.PatoolError as e:
@@ -81,7 +86,7 @@ def extract_images(file_path):
 
 
 def create_gui():
-    global mosaic_description
+    global mosaic_description, mosaic_display
     
     app = tk.Tk()
     app.title("MosaicMeMagic")
@@ -100,5 +105,8 @@ def create_gui():
     
     upload_button = tk.Button(app, text="Upload Images", command=upload_images)
     upload_button.pack()
+
+    mosaic_display = tk.Label(app, text="Mosaic appears here!", font=("Arial", 15), bg="#f0f0f0")
+    mosaic_display.pack(side="top")
 
     return app
