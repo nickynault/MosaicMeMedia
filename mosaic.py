@@ -27,7 +27,7 @@ def generate_mosaic(extracted_folder):
         raise ValueError("No valid image files found in the 'extracted_images' folder.")
 
     # Randomly select an image for each tile in the mosaic
-    mosaic_size = 400
+    mosaic_size = 550
     tile_size = 50
     rows = columns = mosaic_size // tile_size
 
