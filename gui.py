@@ -7,6 +7,14 @@ import patoolib
 
 mosaic_description: tk.StringVar
 
+# Check if the images inside the zipped folder are actual valid images
+def is_valid_image(file_path):
+    try:
+        Image.open(file_path)
+        return True
+    except Exception as e:
+        return False
+        
 
 # Uploading the images
 def upload_images():
@@ -16,17 +24,44 @@ def upload_images():
                                                       ("7zip Files", "*.7z")])
 
     if file_path:
-        extract_images(file_path)
+        if not file_path.lower().endswith((".zip", ".rar", ".7z")):
+            messagebox.showerror("Error", "Please select a valid archive file (zip, rar, 7z).")  # shouldn't need this. but just in case
+        else:
+            extract_images(file_path)
 
 
 def extract_images(file_path):
     global mosaic_description
     
-    # Implement code to extract images from the archive file and store them in a folder
-    extract_folder = "extracted_images"
-    patoolib.extract_archive(file_path, outdir=extract_folder)
+    try:
+        # Create a folder to extract images
+        extract_folder = "extracted_images"
+        os.makedirs(extract_folder, exist_ok=True)
 
-    mosaic_description.set(random_phrase(mosaic_feedback_phrases))    # changes phrases randomly after upload
+        # Extract images from the archive file
+        patoolib.extract_archive(file_path, outdir=extract_folder)
+
+        # Check if the extracted folder is NOT empty
+        files_in_folder = os.listdir(extract_folder)
+        if not files_in_folder:
+            raise FileNotFoundError("The extracted folder is empty.")
+
+        # Check if the extracted folder contains valid image files
+        valid_images = [file for file in files_in_folder if file.lower().endswith(tuple(VALID_IMAGE_EXTENSIONS))]
+        if not valid_images:
+            raise ValueError("The extracted folder does not contain valid image files.")
+
+        # Update the mosaic description
+        mosaic_description.set(random_phrase(mosaic_feedback_phrases))
+
+    except FileNotFoundError:
+        messagebox.showerror("Extraction Error", "The extracted folder is empty.")
+    except patoolib.util.PatoolError as e:
+        messagebox.showerror("Extraction Error", f"An error occurred during extraction: {str(e)}")
+    except ValueError as e:
+        messagebox.showerror("Validation Error", str(e))
+    except Exception as e:
+        messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
 
 
 def create_gui():
