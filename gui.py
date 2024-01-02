@@ -8,8 +8,34 @@ import shutil
 
 mosaic_description: tk.StringVar
 mosaic_display: tk.Label
+download_button: tk.Button
+app: tk.Tk
 
 VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".PNG", ".bmp", ".gif", ".tiff", ".webp"}
+
+
+def download_mosaic():
+    global app, mosaic_display, download_button
+
+    try:
+        # Take a screenshot of the area containing the mosaic
+        screenshot = ImageGrab.grab(bbox=(app.winfo_rootx() + mosaic_display.winfo_x(),
+                                          app.winfo_rooty() + mosaic_display.winfo_y(),
+                                          app.winfo_rootx() + mosaic_display.winfo_x() + mosaic_display.winfo_width(),
+                                          app.winfo_rooty() + mosaic_display.winfo_y() + mosaic_display.winfo_height()))
+
+        # Save the screenshot as a PNG file
+        save_path = os.path.join(os.path.expanduser('~'), 'Downloads', 'mosaic.png')
+        screenshot.save(save_path, 'PNG')
+
+        messagebox.showinfo("Download Complete", f"Mosaic successfully downloaded to {save_path}")
+
+        # Show the download button after successfully capturing the mosaic
+        download_button.config(state=tk.NORMAL)
+
+    except Exception as e:
+        messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
+
 
 # Check if the images inside the zipped folder are actual valid images
 def is_valid_image(file_path):
@@ -22,6 +48,8 @@ def is_valid_image(file_path):
 
 # Uploading the images
 def upload_images():
+    global mosaic_display, download_button
+    
     file_path = filedialog.askopenfilename(initialdir="/", title="Select Your Zip File!",
                                            filetypes=[("Zip Files", "*.zip"),
                                                       ("RAR Files", "*.rar"),
@@ -32,6 +60,15 @@ def upload_images():
             messagebox.showerror("Error", "Please select a valid archive file (zip, rar, 7z).")  # shouldn't need this. but just in case
         else:
             extract_images(file_path)
+            create_download_button()
+
+
+def create_download_button():
+    global download_button
+
+    # Create a download button (initially hidden)
+    download_button = tk.Button(app, text="Download", command=download_mosaic)
+    download_button.pack(side="top", pady=20)
 
 
 def extract_images(file_path):
@@ -86,7 +123,7 @@ def extract_images(file_path):
 
 
 def create_gui():
-    global mosaic_description, mosaic_display
+    global mosaic_description, mosaic_display, app
     
     app = tk.Tk()
     app.title("MosaicMeMagic")
