@@ -1,6 +1,6 @@
 # mosaic only
 
-from PIL import Image
+from PIL import Image, ImageTk, ImageGrab
 import os
 import random
 
