@@ -4,6 +4,6 @@ Simply clone the repo and run the app. Enjoy!
 
 ## Features
 - Zipped file upload via .rar, .7z, and .zip.
--Images can be .jpg, .jpeg, .png, .bmp, .gif, .tiff, and .webp.
--Mosaics can be limitlessly generated. 
--Download your mosaics. 
+- Images can be .jpg, .jpeg, .png, .bmp, .gif, .tiff, and .webp.
+- Mosaics can be limitlessly generated. 
+- Download your mosaics. 
