@@ -18,7 +18,7 @@ mosaic_feedback_phrases = [
 ]
 
 
-def generate_mosaic(extracted_folder):
+def generate_mosaic(extracted_folder, progress_callback=None):
     # Get a list of subfolders within the extracted folder
     valid_images = [file for file in os.listdir(extract_folder) if
                     file.lower().endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp"))]
@@ -30,6 +30,7 @@ def generate_mosaic(extracted_folder):
     mosaic_size = 550
     tile_size = 50
     rows = columns = mosaic_size // tile_size
+    total_tiles = rows * columns
 
     mosaic = Image.new("RGB", (mosaic_size, mosaic_size))
 
@@ -39,6 +40,10 @@ def generate_mosaic(extracted_folder):
             tile = Image.open(image_path)
             tile = tile.resize((tile_size, tile_size), Image.BICUBIC)
             mosaic.paste(tile, (col * tile_size, row * tile_size))
+
+            # Update progress for each tile
+            if progress_callback:
+                progress_callback((row * columns + col + 1) / total_tiles * 100)
 
     # Convert the mosaic to a Tkinter PhotoImage
     mosaic_photo = ImageTk.PhotoImage(mosaic)
