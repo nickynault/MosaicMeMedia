@@ -158,7 +158,7 @@ def create_gui():
 
     app = tk.Tk()
     app.title("MosaicMeMagic")
-    app.geometry("800x800")
+    app.geometry("1000x800")
     app.configure(bg="#f0f0f0")
 
     # Add GUI elements here
