@@ -18,9 +18,32 @@ mosaic_feedback_phrases = [
 ]
 
 
-def generate_mosaic(images_folder, base_image_path, tile_size):
-    # Implement code to generate mosaic from images in new folder
-    pass
+def generate_mosaic(extracted_folder):
+    # Get a list of subfolders within the extracted folder
+    valid_images = [file for file in os.listdir(extract_folder) if
+                    file.lower().endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp"))]
+
+    if not valid_images:
+        raise ValueError("No valid image files found in the 'extracted_images' folder.")
+
+    # Randomly select an image for each tile in the mosaic
+    mosaic_size = 400
+    tile_size = 50
+    rows = columns = mosaic_size // tile_size
+
+    mosaic = Image.new("RGB", (mosaic_size, mosaic_size))
+
+    for row in range(rows):
+        for col in range(columns):
+            image_path = os.path.join(extract_folder, random.choice(valid_images))
+            tile = Image.open(image_path)
+            tile = tile.resize((tile_size, tile_size), Image.BICUBIC)
+            mosaic.paste(tile, (col * tile_size, row * tile_size))
+
+    # Convert the mosaic to a Tkinter PhotoImage
+    mosaic_photo = ImageTk.PhotoImage(mosaic)
+
+    return mosaic_photo
 
 def random_phrase(phrases):
     chosen_phrase = random.choice(phrases)
